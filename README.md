@@ -1,8 +1,8 @@
 # detecting-market-regime-changes
 
-Used hidden Markov models to label regimes on S&P 500 data, then trained three classifiers (naive Bayes, logistic regression, and support vector machines) to predict regimes with the intent of improving an existing trading strategy.
+Used hidden Markov models and NLP techniques to label regimes on S&P 500 data, then trained three classifiers (naive Bayes, logistic regression, and support vector machines) to predict regimes with the intent of improving an existing trading strategy.
 
-This project was done for the requirements of the class 46-927 Machine Learning II. The group members are Dhruv Baid, Rohan Prasad, and Sarthak Vishnoi, and Uday Sharma.
+This project was done for the requirements of the class 46-924 Natural Language Processing. The group members are Dhruv Baid, Prajakta Phadke, and Uday Sharma.
 
 # Abstract
 
