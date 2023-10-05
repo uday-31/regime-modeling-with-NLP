@@ -67,7 +67,7 @@ class CustomCrossValidation:
     def get_optimal_loss(self):
         return self.optimal_loss
 
-    def _find_optimum_value(self, loss: dict, metric: str, minimize: bool, optimum: np.float, parameters: dict):
+    def _find_optimum_value(self, loss: dict, metric: str, minimize: bool, optimum: float, parameters: dict):
         if minimize:
             if loss[metric] < optimum:
                 self.optimal_parameters = parameters
