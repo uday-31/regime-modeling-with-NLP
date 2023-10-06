@@ -61,9 +61,15 @@ class TF_IDF():
     def __init__(self, X_train: pd.Series=None, X_test: pd.Series=None):
         self.X_train = X_train
         self.X_test = X_test
+        
+        # Attributes needed for manual TF-IDF computations
         self.def_vectorizer = None
         self.tfidf_manual_train = None
         self.tfidf_manual_test = None
+        
+        # Attributes needed for gensim TF-IDF computations
+        self.dict_gensim_statements = None
+        self.tfidf_model_gensim = None
         self.tfidf_gensim_train = None
         self.tfidf_gensim_test = None
 
@@ -71,10 +77,10 @@ class TF_IDF():
         self.X_train = X_train
         self.X_test = X_test
     
-    def fit_manual(self, train: bool=True):
+    def fit_manual_helper(self, train: bool=True):
         """
         This function manually computes the TF-IDF values for a column of train
-        or test documents, to avoid the incorrect computations performed by
+        OR test documents, to avoid the incorrect computations performed by
         sklearn's native implementation.
         
         @param train: flag determining if function will fit/transform train
@@ -99,7 +105,7 @@ class TF_IDF():
             self.def_vectorizer = CountVectorizer(token_pattern='[a-zA-Z]+')
             word_bow_matrix = self.def_vectorizer.fit_transform(text)
         else:
-            word_bow_matrix = self.def_vectorizer.fit(text)
+            word_bow_matrix = self.def_vectorizer.transform(text)
         
         word_bow_df = pd.DataFrame(
             word_bow_matrix.toarray(),
@@ -117,8 +123,17 @@ class TF_IDF():
             self.tfidf_manual_train = tf_df * idf
         else:
             self.tfidf_manual_test = tf_df * idf
+    
+    def fit_manual(self):
+        """
+        This function fits the manual TF-IDF model to train data and generates
+        the values for the test data by calling the previously-defined helper
+        function consecutively on train and test data.
+        """
+        self.fit_manual_helper(train=True)
+        self.fit_manual_helper(train=False)
 
-    def fit_gensim(self, train: bool=True):
+    def fit_gensim_helper(self, train: bool=True):
         """
         This function uses gensim to compute the TF-IDF values for a column of
         train or test documents, to avoid the incorrect computations performed
@@ -146,12 +161,12 @@ class TF_IDF():
         bow_gensim_statements = [self.dict_gensim_statements.doc2bow(d) for d in gensim_statements]
         
         if train:
-            self.tfidf_model = TfidfModel(bow_gensim_statements)
+            self.tfidf_model_gensim = TfidfModel(bow_gensim_statements)
         
-        tfidf_statements = self.tfidf_model[bow_gensim_statements]
+        tfidf_statements = self.tfidf_model_gensim[bow_gensim_statements]
         
         num_terms = len(self.dict_gensim_statements.keys())
-        num_docs = self.dict_gensim_statements.num_docs
+        num_docs = len(tfidf_statements)
         
         if train:
             self.tfidf_gensim_train = corpus2dense(
@@ -165,6 +180,15 @@ class TF_IDF():
                 num_terms,
                 num_docs
             ).T
+
+    def fit_gensim(self):
+        """
+        This function fits the gensim TF-IDF model to train data and generates
+        the values for the test data by calling the previously-defined helper
+        function consecutively on train and test data.
+        """
+        self.fit_gensim_helper(train=True)
+        self.fit_gensim_helper(train=False)
 
 
 if __name__ == "__main__":
