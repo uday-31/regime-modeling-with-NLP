@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 
 
 class KMeansCluster():
-    def __init__(self, k: int=2, X_train=None, X_test=None):
+    def __init__(self, k: int = 2, X_train=None, X_test=None):
         self.k = k
         self.model = KMeans(n_clusters=self.k, random_state=42)
         self.X_train = X_train
@@ -44,4 +44,3 @@ class KMeansCluster():
             }).set_index('CLUSTER')
         else:
             self.y_test_pred = None
-        return self.y_train_pred, self.y_test_pred
