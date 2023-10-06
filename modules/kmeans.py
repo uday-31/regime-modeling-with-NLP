@@ -5,6 +5,17 @@ from sklearn.cluster import KMeans
 
 class KMeansCluster():
     def __init__(self, k: int = 2, X_train=None, X_test=None):
+    """
+    Class which allows user to fit a K-Means model to the training data and
+    subsequently predict labels for the test data. Call `assign()`, `fit()`, and
+    `predict()` to perform the respective tasks. Some parameters of note:
+    
+    @param y_train_pred: predicted labels on training data
+    @param y_test_pred: predicted labels on test data
+    @param sizes_train_df: pd.DataFrame containing counts of train data by label
+    @param sizes_test_df: pd.DataFrame containing counts of test data by label
+    """
+    def __init__(self, k: int=2, X_train=None, X_test=None):
         self.k = k
         self.model = KMeans(n_clusters=self.k, random_state=42)
         self.X_train = X_train
