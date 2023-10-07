@@ -12,6 +12,8 @@ class KMeansCluster():
         self.labels_ = None
         self.y_train_pred = None
         self.y_test_pred = None
+        self.sizes_train_df = None
+        self.sizes_test_df = None
     
     def assign(self, X_train, X_test=None):
         self.X_train = X_train
@@ -24,7 +26,7 @@ class KMeansCluster():
         if self.X_train is not None:
             self.model.fit(self.X_train)
             self.labels_ = self.model.labels_
-            self.sizes_df = pd.DataFrame.from_dict({
+            self.sizes_train_df = pd.DataFrame.from_dict({
                 'CLUSTER': [i for i in range(self.k)],
                 'CLUSTER_SIZE': [np.sum(self.labels_ == i) for i in range(self.k)],
             }).set_index('CLUSTER')
@@ -36,6 +38,10 @@ class KMeansCluster():
         self.y_train_pred = self.model.predict(self.X_train)
         if self.X_test is not None:
             self.y_test_pred = self.model.predict(self.X_test)
+            self.sizes_test_df = pd.DataFrame.from_dict({
+                'CLUSTER': [i for i in range(self.k)],
+                'CLUSTER_SIZE': [np.sum(self.y_test_pred == i) for i in range(self.k)],
+            }).set_index('CLUSTER')
         else:
             self.y_test_pred = None
         return self.y_train_pred, self.y_test_pred
