@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 class KMeansCluster():
     def __init__(self, k: int = 2, X_train=None, X_test=None):
         self.k = k
-        self.model = KMeans(n_clusters=self.k, random_state=42)
+        self.model = KMeans(n_clusters=self.k, init='random')
         self.X_train = X_train
         self.X_test = X_test
         self.labels_ = None

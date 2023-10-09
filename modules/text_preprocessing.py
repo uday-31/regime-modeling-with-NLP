@@ -7,6 +7,7 @@ from gensim.models.coherencemodel import CoherenceModel
 import numpy as np
 import pandas as pd
 import nltk
+
 nltk.download("stopwords")
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
@@ -52,13 +53,14 @@ def tokenizer_wo_stopwords(text: str):
     """
     tokens = nltk.word_tokenize(text)
     words = [word.lower() for word in tokens if word.isalpha()]
-    words_wo_stop = [w.lower() for w in words if w.lower() not in ENGLISH_STOP_WORDS and w.lower() not in FOMC_STOP_WORDS]
+    words_wo_stop = [w.lower() for w in words if
+                     w.lower() not in ENGLISH_STOP_WORDS and w.lower() not in FOMC_STOP_WORDS]
     res = ' '.join(words_wo_stop)
     return res
 
 
 class TF_IDF():
-    def __init__(self, X_train: pd.Series=None, X_test: pd.Series=None):
+    def __init__(self, X_train: pd.Series = None, X_test: pd.Series = None):
         self.X_train = X_train
         self.X_test = X_test
         
@@ -70,14 +72,16 @@ class TF_IDF():
         # Attributes needed for gensim TF-IDF computations
         self.dict_gensim_statements = None
         self.tfidf_model_gensim = None
+        self.tfidf_statements_train = None
+        self.tfidf_statements_test = None
         self.tfidf_gensim_train = None
         self.tfidf_gensim_test = None
-
-    def assign(self, X_train: pd.Series=None, X_test: pd.Series=None):
+    
+    def assign(self, X_train: pd.Series = None, X_test: pd.Series = None):
         self.X_train = X_train
         self.X_test = X_test
     
-    def fit_manual_helper(self, train: bool=True):
+    def fit_manual_helper(self, train: bool = True):
         """
         This function manually computes the TF-IDF values for a column of train
         OR test documents, to avoid the incorrect computations performed by
@@ -99,7 +103,7 @@ class TF_IDF():
         
         # Get number of documents
         n_docs = text.shape[0]
-    
+        
         # Generate bag-of-words matrix
         if train:
             self.def_vectorizer = CountVectorizer(token_pattern='[a-zA-Z]+')
@@ -111,13 +115,13 @@ class TF_IDF():
             word_bow_matrix.toarray(),
             columns=self.def_vectorizer.get_feature_names_out()
         )
-
+        
         # Create TF matrix
         tf_df = word_bow_df / word_bow_df.sum(axis=1).values.reshape(n_docs, 1)
         
         # Compute IDF values
         idf = np.log(n_docs / (word_bow_df / word_bow_df.values).sum(axis=0))
-    
+        
         # Manually create TF-IDF matrix
         if train:
             self.tfidf_manual_train = tf_df * idf
@@ -132,8 +136,8 @@ class TF_IDF():
         """
         self.fit_manual_helper(train=True)
         self.fit_manual_helper(train=False)
-
-    def fit_gensim_helper(self, train: bool=True):
+    
+    def fit_gensim_helper(self, train: bool = True):
         """
         This function uses gensim to compute the TF-IDF values for a column of
         train or test documents, to avoid the incorrect computations performed
@@ -165,6 +169,11 @@ class TF_IDF():
         
         tfidf_statements = self.tfidf_model_gensim[bow_gensim_statements]
         
+        if train:
+            self.tfidf_statements_train = tfidf_statements
+        else:
+            self.tfidf_statements_test = tfidf_statements
+        
         num_terms = len(self.dict_gensim_statements.keys())
         num_docs = len(tfidf_statements)
         
@@ -180,7 +189,7 @@ class TF_IDF():
                 num_terms,
                 num_docs
             ).T
-
+    
     def fit_gensim(self):
         """
         This function fits the gensim TF-IDF model to train data and generates
