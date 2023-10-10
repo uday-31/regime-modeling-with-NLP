@@ -122,7 +122,7 @@ class Pipeline:
                 valid_end:str = "2019-12-31", test_start:str = "2020-01-01",
                 theta: float = 0.025, num_regimes: int = 2, trading_day: dict = {'equity':6.5, 'fx':12,'bond':9},
                 DC_indicator: str = "R", threshold: float = 0.5, strat: str = "JC1", init_cap: int = 1, to_test: bool = False, 
-                epsilon: float = 0.5, model: str = 'naive_bayes'):
+                epsilon: float = 0.5, model: str = 'naive_bayes', provide_labels: bool = False, labels = None):
 
         """Initializes the pipeline parameters.
 
@@ -144,6 +144,8 @@ class Pipeline:
             init_cap (int, optional): Starting capital for the strategy
             to_test (bool, optional): Whether we are fitting on the trainging set or testing on test set
             epsilon (float, optional): Min prob for predicting class 1
+            provide_labels (bool, optional): whether we supply the regime labels
+            labels: the above labels
         """
         self.df_ts = df_ts
         self.type_ = type_
@@ -161,6 +163,8 @@ class Pipeline:
         self.DC_indicator = DC_indicator
         self.dict_indicators = {}
         self.model = model
+        self.provide_labels = provide_labels
+        self.labels = labels
 
         self.regimes_valid = {}  # Regimes predicted on validation set
         self.trading_metrics = {}  # Metrics for trading strategy
@@ -232,20 +236,22 @@ class Pipeline:
                                                                  threshold=self.threshold)
         self.trading_metrics = self.trading_metrics[self.strat]
         
+
         if( self.to_test ):
-            if self.model=='naive_bayes':
-                self.regimes_test = nbc.do_all_NBC(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
-            elif self.model=='logistic_regression':
-                self.regimes_test = lr.do_all_LR(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
-            elif self.model=='svm':
-                self.regimes_test = svm.do_all_SVM(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
-            self.regimes_test = pd.Series( self.regimes_test, index = self.dict_indicators[self.DC_indicator]['test'].index )
-            self.trading_metrics_test = ts.get_loss_function_for_pipeline( self.ts['test'], self.dc['test'], self.regimes_test, self.theta, init_cap = self.init_cap, strat = self.strat, threshold = self.threshold)
-            self.trading_metrics_test = self.trading_metrics_test[self.strat]
-
-
-
-    
+            if not self.provide_labels:
+                if self.model=='naive_bayes':
+                    self.regimes_test = nbc.do_all_NBC(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
+                elif self.model=='logistic_regression':
+                    self.regimes_test = lr.do_all_LR(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
+                elif self.model=='svm':
+                    self.regimes_test = svm.do_all_SVM(self.dict_indicators[self.DC_indicator]['train'].values.reshape(-1, 1), self.regimes, self.dict_indicators[self.DC_indicator]['test'].values.reshape(-1, 1), self.epsilon)
+                self.regimes_test = pd.Series( self.regimes_test, index = self.dict_indicators[self.DC_indicator]['test'].index )
+                self.trading_metrics_test = ts.get_loss_function_for_pipeline( self.ts['test'], self.dc['test'], self.regimes_test, self.theta, init_cap = self.init_cap, strat = self.strat, threshold = self.threshold)
+                self.trading_metrics_test = self.trading_metrics_test[self.strat]
+            else:
+                self.regimes_test = self.labels
+                self.trading_metrics_test = ts.get_loss_function_for_pipeline( self.ts['test'], self.dc['test'], self.regimes_test, self.theta, init_cap = self.init_cap, strat = self.strat, threshold = self.threshold)
+                self.trading_metrics_test = self.trading_metrics_test[self.strat]    
         
 
 #%%
