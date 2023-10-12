@@ -4,9 +4,9 @@ from sklearn.cluster import KMeans
 
 
 class KMeansCluster():
-    def __init__(self, k: int = 2, X_train=None, X_test=None):
+    def __init__(self, k: int = 2, X_train=None, X_test=None, random_state=25):
         self.k = k
-        self.model = KMeans(n_clusters=self.k, init='random')
+        self.model = KMeans(n_clusters=self.k, init='random', random_state=random_state)
         self.X_train = X_train
         self.X_test = X_test
         self.labels_ = None
